@@ -115,6 +115,19 @@ const int SECONDS = 30;
     }
 }
 
+- (void)detectionError
+{
+    // Assuming we want to stop detection on error
+    [self stopDetection];
+    
+    if (self.delegate)
+    {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self.delegate heartRateError];
+        });
+    }
+}
+
 - (void)captureOutput:(AVCaptureOutput *)captureOutput didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer fromConnection:(AVCaptureConnection *)connection
 {
     static int count=0;
