@@ -9,6 +9,8 @@
 #import "HeartRateDetectionModel.h"
 #import <AVFoundation/AVFoundation.h>
 
+#define ERROR_DOMAIN @"HeartRateDetectionModel"
+
 const int FRAMES_PER_SECOND = 30;
 const int SECONDS = 30;
 
@@ -115,7 +117,7 @@ const int SECONDS = 30;
     }
 }
 
-- (void)detectionError
+- (void)detectionError:(NSError *)error
 {
     // Assuming we want to stop detection on error
     [self stopDetection];
@@ -123,7 +125,7 @@ const int SECONDS = 30;
     if (self.delegate)
     {
         dispatch_async(dispatch_get_main_queue(), ^{
-            [self.delegate heartRateError];
+            [self.delegate heartRateError:error];
         });
     }
 }
@@ -166,7 +168,9 @@ const int SECONDS = 30;
     b/=255*(float) (width*height/widthScaleFactor/heightScaleFactor);
     
     if (r < 190 || g > 30 || b > 30) {
-        // TODO call error delegate
+        // Colour is not "red enough" and is probably not a real detection
+        NSError *error = [NSError errorWithDomain:ERROR_DOMAIN code:0 userInfo:@{@"Error":@"FRAME_NOT_RED"}];
+        [self detectionError:error];
     }
     
     // The hue value is the most expressive when looking for heart beats.
