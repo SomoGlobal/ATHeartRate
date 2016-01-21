@@ -205,27 +205,27 @@ const int HEARTRATE_TOO_VARIABLE = 0x00000001;
             float percentage = secondsPassed / 60;
             float heartRate = peakCount / percentage;
             
-            if (self.lastPeakCount2 > 0) {
-                double prevMomentary = 60000.0 / (double) (self.lastPeakCount - self.lastPeakCount2);
-                double ratio = momentary / prevMomentary;
-                double log = logl(ratio);
-                [self.peakDifferentials addObject:@(log * log)];
-            }
-            
-            self.lastPeakCount2 = self.lastPeakCount;
-            self.lastPeakCount = peakCount;
-            
+//            if (self.lastPeakCount2 > 0) {
+//                double prevMomentary = 60000.0 / (double) (self.lastPeakCount - self.lastPeakCount2);
+//                double ratio = momentary / prevMomentary;
+//                double log = logl(ratio);
+//                [self.peakDifferentials addObject:@(log * log)];
+//            }
+//            
+//            self.lastPeakCount2 = self.lastPeakCount;
+//            self.lastPeakCount = peakCount;
+//            
+//            /*
+//             if (mLastPeak2 != mStartTime) {
+//             +            final double prevMomentary = 60000.0 / (double) (mLastPeak - mLastPeak2);
+//             +            final double ratio = momentary / prevMomentary;
+//             +            final double log = Math.log(ratio);
+//             +            mPeakDifferentials.add(log * log);
+//             +        }
+//             
+//             */
+//             
             /*
-             if (mLastPeak2 != mStartTime) {
-             +            final double prevMomentary = 60000.0 / (double) (mLastPeak - mLastPeak2);
-             +            final double ratio = momentary / prevMomentary;
-             +            final double log = Math.log(ratio);
-             +            mPeakDifferentials.add(log * log);
-             +        }
-             
-             */
-             
-             
             double sum = 0.0;
             for (NSNumber *differential in self.peakDifferentials) {
                 sum += differential.doubleValue;
@@ -236,33 +236,31 @@ const int HEARTRATE_TOO_VARIABLE = 0x00000001;
                 [self detectionError:error];
             }
             else {
-                dispatch_async(dispatch_get_main_queue(), ^{
-                    [self.delegate heartRateUpdate:heartRate atTime:displaySeconds];
-                });
-            }
-            /*
-            double sum = 0.0;
-            +                for (Double d: mPeakDifferentials) {
-                +                    sum += d;
-                +                }
-            +                if (
-                                 +                        sum / (double) mPeakDifferentials.size()
-                                 +                                > MAX_ALLOWABLE_DIFFERENTIAL
-                                 +                        ) {
-                +                    mBeatCallback.onError(HEARTRATE_TOO_VARIABLE);
-                +                } else {
-                    +                    mBeatCallback.onBpm(mMomentary, mAverage, true);
-                    +                }
+                
+            }*/
             
-            */
-            
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [self.delegate heartRateUpdate:heartRate atTime:displaySeconds];
+            });
         }
     }
     
     // If we have enough data points, start the analysis
     if (self.dataPointsHue.count == (SECONDS * FRAMES_PER_SECOND))
     {
-        [self stopDetection];
+        // We're finished
+        double sum = 0.0;
+        for (NSNumber *differential in self.peakDifferentials) {
+            sum += differential.doubleValue;
+        }
+        
+        if ((sum / (double)self.peakDifferentials.count) > MAX_ALLOWABLE_DIFFERENTIAL) {
+            NSError *error = [NSError errorWithDomain:ERROR_DOMAIN code:1 userInfo:@{@"Error":@"HEARTRATE_TOO_VARIABLE"}];
+            [self detectionError:error];
+        }
+        else {
+            [self stopDetection];
+        }
     }
     
     // Unlock the image buffer
