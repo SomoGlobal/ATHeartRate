@@ -12,7 +12,7 @@
 #define ERROR_DOMAIN @"HeartRateDetectionModel"
 
 const int FRAMES_PER_SECOND = 30;
-const int SECONDS = 30;
+const int SECONDS = 10;
 
 @interface HeartRateDetectionModel() <AVCaptureVideoDataOutputSampleBufferDelegate>
 
