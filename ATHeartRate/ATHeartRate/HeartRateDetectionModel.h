@@ -13,6 +13,7 @@
 - (void)heartRateStart;
 - (void)heartRateUpdate:(int)bpm atTime:(int)seconds;
 - (void)heartRateEnd;
+- (void)heartRateError;
 
 @end
 
