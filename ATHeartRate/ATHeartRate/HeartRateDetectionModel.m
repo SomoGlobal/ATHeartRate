@@ -14,10 +14,15 @@
 const int FRAMES_PER_SECOND = 30;
 const int SECONDS = 30;
 
+const double MAX_ALLOWABLE_DIFFERENTIAL = 0.25;
+const int FRAME_NOT_RED = 0x00000000;
+const int HEARTRATE_TOO_VARIABLE = 0x00000001;
+
 @interface HeartRateDetectionModel() <AVCaptureVideoDataOutputSampleBufferDelegate>
 
 @property (nonatomic, strong) AVCaptureSession *session;
 @property (nonatomic, strong) NSMutableArray *dataPointsHue;
+@property (nonatomic, strong) NSMutableArray *peakDifferentials;
 
 @end
 
@@ -28,6 +33,7 @@ const int SECONDS = 30;
 - (void)startDetection
 {
     self.dataPointsHue = [[NSMutableArray alloc] init];
+    self.peakDifferentials = [[NSMutableArray alloc] init];
     self.session = [[AVCaptureSession alloc] init];
     self.session.sessionPreset = AVCaptureSessionPresetLow;
     
@@ -195,6 +201,35 @@ const int SECONDS = 30;
             float secondsPassed = smoothedBandpassItems.count / FRAMES_PER_SECOND;
             float percentage = secondsPassed / 60;
             float heartRate = peakCount / percentage;
+            
+            /*
+             if (mLastPeak2 != mStartTime) {
+             +            final double prevMomentary = 60000.0 / (double) (mLastPeak - mLastPeak2);
+             +            final double ratio = momentary / prevMomentary;
+             +            final double log = Math.log(ratio);
+             +            mPeakDifferentials.add(log * log);
+             +        }
+             
+             */
+             
+             
+             
+            
+            /*
+            double sum = 0.0;
+            +                for (Double d: mPeakDifferentials) {
+                +                    sum += d;
+                +                }
+            +                if (
+                                 +                        sum / (double) mPeakDifferentials.size()
+                                 +                                > MAX_ALLOWABLE_DIFFERENTIAL
+                                 +                        ) {
+                +                    mBeatCallback.onError(HEARTRATE_TOO_VARIABLE);
+                +                } else {
+                    +                    mBeatCallback.onBpm(mMomentary, mAverage, true);
+                    +                }
+            
+            */
             
             dispatch_async(dispatch_get_main_queue(), ^{
                 [self.delegate heartRateUpdate:heartRate atTime:displaySeconds];
