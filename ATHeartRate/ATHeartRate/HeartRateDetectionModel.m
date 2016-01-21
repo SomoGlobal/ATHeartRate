@@ -152,6 +152,10 @@ const int SECONDS = 30;
     g/=255*(float) (width*height/widthScaleFactor/heightScaleFactor);
     b/=255*(float) (width*height/widthScaleFactor/heightScaleFactor);
     
+    if (r < 190 || g > 30 || b > 30) {
+        // TODO call error delegate
+    }
+    
     // The hue value is the most expressive when looking for heart beats.
     // Here we convert our rgb values in hsv and continue with the h value.
     UIColor *color = [UIColor colorWithRed:r green:g blue:b alpha:1.0];
