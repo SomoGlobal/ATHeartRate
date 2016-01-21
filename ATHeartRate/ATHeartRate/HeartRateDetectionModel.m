@@ -8,6 +8,7 @@
 
 #import "HeartRateDetectionModel.h"
 #import <AVFoundation/AVFoundation.h>
+#import <math.h>
 
 #define ERROR_DOMAIN @"HeartRateDetectionModel"
 
@@ -23,6 +24,8 @@ const int HEARTRATE_TOO_VARIABLE = 0x00000001;
 @property (nonatomic, strong) AVCaptureSession *session;
 @property (nonatomic, strong) NSMutableArray *dataPointsHue;
 @property (nonatomic, strong) NSMutableArray *peakDifferentials;
+@property (nonatomic, assign) int lastPeakCount;
+@property (nonatomic, assign) int lastPeakCount2;
 
 @end
 
@@ -202,6 +205,16 @@ const int HEARTRATE_TOO_VARIABLE = 0x00000001;
             float percentage = secondsPassed / 60;
             float heartRate = peakCount / percentage;
             
+            if (self.lastPeakCount2 > 0) {
+                double prevMomentary = 60000.0 / (double) (self.lastPeakCount - self.lastPeakCount2);
+                double ratio = momentary / prevMomentary;
+                double log = logl(ratio);
+                [self.peakDifferentials addObject:@(log * log)];
+            }
+            
+            self.lastPeakCount2 = self.lastPeakCount;
+            self.lastPeakCount = peakCount;
+            
             /*
              if (mLastPeak2 != mStartTime) {
              +            final double prevMomentary = 60000.0 / (double) (mLastPeak - mLastPeak2);
@@ -213,8 +226,20 @@ const int HEARTRATE_TOO_VARIABLE = 0x00000001;
              */
              
              
-             
+            double sum = 0.0;
+            for (NSNumber *differential in self.peakDifferentials) {
+                sum += differential.doubleValue;
+            }
             
+            if ((sum / (double)self.peakDifferentials.count) > MAX_ALLOWABLE_DIFFERENTIAL) {
+                NSError *error = [NSError errorWithDomain:ERROR_DOMAIN code:1 userInfo:@{@"Error":@"HEARTRATE_TOO_VARIABLE"}];
+                [self detectionError:error];
+            }
+            else {
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    [self.delegate heartRateUpdate:heartRate atTime:displaySeconds];
+                });
+            }
             /*
             double sum = 0.0;
             +                for (Double d: mPeakDifferentials) {
@@ -231,9 +256,6 @@ const int HEARTRATE_TOO_VARIABLE = 0x00000001;
             
             */
             
-            dispatch_async(dispatch_get_main_queue(), ^{
-                [self.delegate heartRateUpdate:heartRate atTime:displaySeconds];
-            });
         }
     }
     
