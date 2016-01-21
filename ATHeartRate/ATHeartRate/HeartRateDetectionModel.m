@@ -176,17 +176,17 @@ const int HEARTRATE_TOO_VARIABLE = 0x00000001;
     g/=255*(float) (width*height/widthScaleFactor/heightScaleFactor);
     b/=255*(float) (width*height/widthScaleFactor/heightScaleFactor);
     
-    if (r < 0.5 || g > 0.3 || b > 0.3) {
-        // Colour is not "red enough" and is probably not a real detection
-        NSError *error = [NSError errorWithDomain:ERROR_DOMAIN code:0 userInfo:@{@"Error":@"FRAME_NOT_RED"}];
-        [self detectionError:error];
-    }
-    
     // The hue value is the most expressive when looking for heart beats.
     // Here we convert our rgb values in hsv and continue with the h value.
     UIColor *color = [UIColor colorWithRed:r green:g blue:b alpha:1.0];
     CGFloat hue, sat, bright;
     [color getHue:&hue saturation:&sat brightness:&bright alpha:nil];
+    
+    if (hue < 0.95 && hue > 0.05) {
+        // Colour is not "red enough" and is probably not a real detection
+        NSError *error = [NSError errorWithDomain:ERROR_DOMAIN code:0 userInfo:@{@"Error":@"HUE NOT IN RANGE"}];
+        [self detectionError:error];
+    }
     
     [self.dataPointsHue addObject:@(hue)];
     
@@ -204,40 +204,6 @@ const int HEARTRATE_TOO_VARIABLE = 0x00000001;
             float secondsPassed = smoothedBandpassItems.count / FRAMES_PER_SECOND;
             float percentage = secondsPassed / 60;
             float heartRate = peakCount / percentage;
-            
-//            if (self.lastPeakCount2 > 0) {
-//                double prevMomentary = 60000.0 / (double) (self.lastPeakCount - self.lastPeakCount2);
-//                double ratio = momentary / prevMomentary;
-//                double log = logl(ratio);
-//                [self.peakDifferentials addObject:@(log * log)];
-//            }
-//            
-//            self.lastPeakCount2 = self.lastPeakCount;
-//            self.lastPeakCount = peakCount;
-//            
-//            /*
-//             if (mLastPeak2 != mStartTime) {
-//             +            final double prevMomentary = 60000.0 / (double) (mLastPeak - mLastPeak2);
-//             +            final double ratio = momentary / prevMomentary;
-//             +            final double log = Math.log(ratio);
-//             +            mPeakDifferentials.add(log * log);
-//             +        }
-//             
-//             */
-//             
-            /*
-            double sum = 0.0;
-            for (NSNumber *differential in self.peakDifferentials) {
-                sum += differential.doubleValue;
-            }
-            
-            if ((sum / (double)self.peakDifferentials.count) > MAX_ALLOWABLE_DIFFERENTIAL) {
-                NSError *error = [NSError errorWithDomain:ERROR_DOMAIN code:1 userInfo:@{@"Error":@"HEARTRATE_TOO_VARIABLE"}];
-                [self detectionError:error];
-            }
-            else {
-                
-            }*/
             
             dispatch_async(dispatch_get_main_queue(), ^{
                 [self.delegate heartRateUpdate:heartRate atTime:displaySeconds];
