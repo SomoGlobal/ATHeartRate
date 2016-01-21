@@ -176,7 +176,7 @@ const int HEARTRATE_TOO_VARIABLE = 0x00000001;
     g/=255*(float) (width*height/widthScaleFactor/heightScaleFactor);
     b/=255*(float) (width*height/widthScaleFactor/heightScaleFactor);
     
-    if (r < 190 || g > 30 || b > 30) {
+    if (r < 0.5 || g > 0.3 || b > 0.3) {
         // Colour is not "red enough" and is probably not a real detection
         NSError *error = [NSError errorWithDomain:ERROR_DOMAIN code:0 userInfo:@{@"Error":@"FRAME_NOT_RED"}];
         [self detectionError:error];
