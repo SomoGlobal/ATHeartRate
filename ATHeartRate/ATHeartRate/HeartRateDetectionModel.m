@@ -120,7 +120,7 @@ const int SECONDS = 30;
 - (void)detectionError:(NSError *)error
 {
     // Assuming we want to stop detection on error
-    [self stopDetection];
+    [self.session stopRunning];
     
     if (self.delegate)
     {
