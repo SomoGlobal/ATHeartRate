@@ -311,12 +311,17 @@ const int HEARTRATE_TOO_VARIABLE = 0x00000001;
 // At a 30 Hz detection rate, assuming 250 max beats per minute, a peak can't be closer than 7 data points apart.
 - (int)peakCount:(NSArray *)inputData
 {
+    // FAO Leivers more here
+    [self.peakDifferentials removeAllObjects];
+    
     if (inputData.count == 0)
     {
         return 0;
     }
     
     int count = 0;
+    int lastPeak = -1;
+    int lastPeak2 = -1;
     
     for (int i = 3; i < inputData.count - 3;)
     {
@@ -330,6 +335,23 @@ const int HEARTRATE_TOO_VARIABLE = 0x00000001;
             )
         {
             count = count + 1;
+
+            // FAO LEIVERS
+            // it's happening here
+            if (lastPeak2 != -1) {
+                // so mathematically this works the same as Android BECAUSE:
+                // - logarithms basically are designed to measure scale differences
+                // - the ratio of the heartrate periods is the inverse of the ratio of the heartrate frequencies
+                // - therefore the log of one will be minus the log of the other
+                // - and then we square it so it makes no difference.
+                double period1 = i - lastPeak;
+                double period2 = lastPeak - lastPeak2;
+                double ratio = period1 / period2;
+                double log = logl(ratio);
+                [self.peakDifferentials addObject:@(log * log)];
+            }
+            lastPeak2 = lastPeak;
+            lastPeak = i;
             i = i + 4;
         }
         else
@@ -340,6 +362,8 @@ const int HEARTRATE_TOO_VARIABLE = 0x00000001;
     
     return count;
 }
+
+
 
 // Smoothed data helps remove outliers that may be caused by interference, finger movement or pressure changes.
 // This will only help with small interference changes.
