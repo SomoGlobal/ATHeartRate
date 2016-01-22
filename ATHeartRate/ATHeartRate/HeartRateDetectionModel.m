@@ -193,7 +193,7 @@ const int SECONDS = 10;
             int peakCount = [self peakCount:smoothedBandpassItems];
             
             float secondsPassed = smoothedBandpassItems.count / FRAMES_PER_SECOND;
-            float percentage = secondsPassed / 60;
+            float percentage = secondsPassed / SECONDS;
             float heartRate = peakCount / percentage;
             
             dispatch_async(dispatch_get_main_queue(), ^{
@@ -203,7 +203,7 @@ const int SECONDS = 10;
     }
     
     // If we have enough data points, start the analysis
-    if (self.dataPointsHue.count == (SECONDS * FRAMES_PER_SECOND))
+    if (self.dataPointsHue.count >= (SECONDS * FRAMES_PER_SECOND))
     {
         [self stopDetection];
     }
