@@ -18,6 +18,7 @@ const int SECONDS = 10;
 
 @property (nonatomic, strong) AVCaptureSession *session;
 @property (nonatomic, strong) NSMutableArray *dataPointsHue;
+@property BOOL seenError;
 
 @end
 
@@ -103,6 +104,8 @@ const int SECONDS = 10;
             [self.delegate heartRateStart];
         });
     }
+    
+    self.seenError = false;
 }
 
 - (void)stopDetection
@@ -173,12 +176,16 @@ const int SECONDS = 10;
     CGFloat hue, sat, bright;
     [color getHue:&hue saturation:&sat brightness:&bright alpha:nil];
     
-    if (hue < 0.95 && hue > 0.05) {
+    if (hue < 0.95 && hue > 0.4) {
         // Colour doesn't have the right hue and is probably not a real detection
-        NSError *error = [NSError errorWithDomain:ERROR_DOMAIN code:0 userInfo:@{@"Error":@"HUE NOT IN RANGE"}];
-        [self detectionError:error];
+        if (self.seenError) {
+            NSError *error = [NSError errorWithDomain:ERROR_DOMAIN code:0 userInfo:@{@"Error":@"HUE NOT IN RANGE"}];
+            [self detectionError:error];
+        }
+        else {
+            self.seenError = true;
+        }
     }
-    
     [self.dataPointsHue addObject:@(hue)];
     
     // Only send UI updates once a second
