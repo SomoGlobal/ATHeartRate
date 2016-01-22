@@ -203,7 +203,7 @@ const int SECONDS = 10;
     }
     
     // If we have enough data points, start the analysis
-    if (self.dataPointsHue.count == (SECONDS * FRAMES_PER_SECOND))
+    if (self.dataPointsHue.count >= (SECONDS * FRAMES_PER_SECOND))
     {
         [self stopDetection];
     }
