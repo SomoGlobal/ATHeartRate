@@ -193,7 +193,7 @@ const int SECONDS = 10;
             int peakCount = [self peakCount:smoothedBandpassItems];
             
             float secondsPassed = smoothedBandpassItems.count / FRAMES_PER_SECOND;
-            float percentage = secondsPassed / SECONDS;
+            float percentage = secondsPassed / 60;
             float heartRate = peakCount / percentage;
             
             dispatch_async(dispatch_get_main_queue(), ^{
