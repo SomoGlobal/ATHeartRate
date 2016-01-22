@@ -167,17 +167,17 @@ const int SECONDS = 10;
     g/=255*(float) (width*height/widthScaleFactor/heightScaleFactor);
     b/=255*(float) (width*height/widthScaleFactor/heightScaleFactor);
     
-    if (r < 0.5 || g > 0.3 || b > 0.3) {
-        // Colour is not "red enough" and is probably not a real detection
-        NSError *error = [NSError errorWithDomain:ERROR_DOMAIN code:0 userInfo:@{@"Error":@"FRAME_NOT_RED"}];
-        [self detectionError:error];
-    }
-    
     // The hue value is the most expressive when looking for heart beats.
     // Here we convert our rgb values in hsv and continue with the h value.
     UIColor *color = [UIColor colorWithRed:r green:g blue:b alpha:1.0];
     CGFloat hue, sat, bright;
     [color getHue:&hue saturation:&sat brightness:&bright alpha:nil];
+    
+    if (hue < 0.95 && hue > 0.05) {
+        // Colour doesn't have the right hue and is probably not a real detection
+        NSError *error = [NSError errorWithDomain:ERROR_DOMAIN code:0 userInfo:@{@"Error":@"HUE NOT IN RANGE"}];
+        [self detectionError:error];
+    }
     
     [self.dataPointsHue addObject:@(hue)];
     
