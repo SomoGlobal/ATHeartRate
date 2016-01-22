@@ -12,7 +12,7 @@
 #define ERROR_DOMAIN @"HeartRateDetectionModel"
 
 const int FRAMES_PER_SECOND = 30;
-const int SECONDS = 30;
+const int SECONDS = 10;
 
 @interface HeartRateDetectionModel() <AVCaptureVideoDataOutputSampleBufferDelegate>
 
@@ -193,7 +193,7 @@ const int SECONDS = 30;
             int peakCount = [self peakCount:smoothedBandpassItems];
             
             float secondsPassed = smoothedBandpassItems.count / FRAMES_PER_SECOND;
-            float percentage = secondsPassed / 60;
+            float percentage = secondsPassed / SECONDS;
             float heartRate = peakCount / percentage;
             
             dispatch_async(dispatch_get_main_queue(), ^{
