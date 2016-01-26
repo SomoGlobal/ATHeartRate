@@ -13,11 +13,14 @@
 
 const int FRAMES_PER_SECOND = 30;
 const int SECONDS = 10;
+const float IPHONE_4S_HUE = 0.4;
+const float OTHER_DEVICES_HUE = 0.05;
 
 @interface HeartRateDetectionModel() <AVCaptureVideoDataOutputSampleBufferDelegate>
 
 @property (nonatomic, strong) AVCaptureSession *session;
 @property (nonatomic, strong) NSMutableArray *dataPointsHue;
+@property (nonatomic, assign) float hueThreshold;
 
 @end
 
@@ -30,6 +33,8 @@ const int SECONDS = 10;
     self.dataPointsHue = [[NSMutableArray alloc] init];
     self.session = [[AVCaptureSession alloc] init];
     self.session.sessionPreset = AVCaptureSessionPresetLow;
+    
+    [self determineCorrectHue];
     
     // Retrieve the back camera
     NSArray *devices = [AVCaptureDevice devices];
@@ -130,6 +135,17 @@ const int SECONDS = 10;
     }
 }
 
+- (void)determineCorrectHue {
+    CGRect screenBounds = [[UIScreen mainScreen] bounds];
+    // If it's smaller than an iPhone 5 in pixel height...
+    if (screenBounds.size.height < 568.0) {
+        self.hueThreshold = IPHONE_4S_HUE;
+    }
+    else {
+        self.hueThreshold = OTHER_DEVICES_HUE;
+    }
+}
+
 - (void)captureOutput:(AVCaptureOutput *)captureOutput didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer fromConnection:(AVCaptureConnection *)connection
 {
     static int count=0;
@@ -173,7 +189,7 @@ const int SECONDS = 10;
     CGFloat hue, sat, bright;
     [color getHue:&hue saturation:&sat brightness:&bright alpha:nil];
     
-    if (hue < 0.95 && hue > 0.05) {
+    if (hue < 0.95 && hue > self.hueThreshold) {
         // Colour doesn't have the right hue and is probably not a real detection
         NSError *error = [NSError errorWithDomain:ERROR_DOMAIN code:0 userInfo:@{@"Error":@"HUE NOT IN RANGE"}];
         [self detectionError:error];
